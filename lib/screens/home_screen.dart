@@ -5,7 +5,7 @@ import 'package:fasum/screens/sign_in_screen.dart';
 import 'add_post_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key});
 
   Future<void> signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Beranda'),
+        title: const Text('Fasum Nopal'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -29,7 +29,10 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('posts').orderBy('timestamp', descending: true).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -48,14 +51,20 @@ class HomeScreen extends StatelessWidget {
               var data = post.data() as Map<String, dynamic>;
               var postTime = data['timestamp'] as Timestamp;
               var date = postTime.toDate();
-              var formattedDate = '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
+              var formattedDate =
+                  '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
 
-              var username = data.containsKey('username') ? data['username'] : 'Anonim';
-              var imageUrl = data.containsKey('image_url') ? data['image_url'] : null;
+              var username =
+              data.containsKey('username') ? data['username'] : 'Anonim';
+              var imageUrl =
+              data.containsKey('image_url') ? data['image_url'] : null;
               var text = data.containsKey('text') ? data['text'] : '';
+              var location = data.containsKey('location')
+                  ? data['location']
+                  : null; // Get location data
 
               return Card(
-                margin: EdgeInsets.all(4.0),
+                margin: const EdgeInsets.all(4.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,7 +75,14 @@ class HomeScreen extends StatelessWidget {
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(child: Text('Gagal memuat gambar'));
+                          },
                         ),
+                      )
+                    else
+                      const Expanded(
+                        child: Center(child: Text('Gambar tidak tersedia')),
                       ),
                     Padding(
                       padding: const EdgeInsets.all(4.0),
@@ -75,20 +91,28 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             username,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             formattedDate,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 10,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          if (location != null) // Show location if available
+                            Text(
+                              'Location: ${location['latitude']}, ${location['longitude']}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                          const SizedBox(height: 4),
                           Text(
                             text,
                             maxLines: 2,
@@ -111,7 +135,7 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => AddPostScreen()),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
